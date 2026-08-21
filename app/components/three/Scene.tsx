@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useRef } from 'react';
+import { Suspense, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Environment, ContactShadows, Grid, Stars } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette, ChromaticAberration } from '@react-three/postprocessing';
@@ -17,66 +17,90 @@ interface BuildingSpec {
   seed: number;
 }
 
-const WINDOW_PALETTE = ['#7ce8ff', '#ff5fe0', '#ffd166', '#9d7bff'];
+const WINDOW_PALETTE = ['#7ce8ff', '#ff5fe0', '#ffd166', '#9d7bff', '#ffffff'];
+const FACADE_PALETTE = ['#0b0a17', '#0e0a1e', '#0a1018', '#120a16', '#0a0e1a'];
+
+function makeWindowEmissiveTexture(width: number, height: number): THREE.CanvasTexture {
+  const texW = 128;
+  const texH = Math.max(64, Math.round(texW * (height / Math.max(width, 0.5))));
+  const canvas = document.createElement('canvas');
+  canvas.width = texW;
+  canvas.height = texH;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, texW, texH);
+
+  const cols = Math.max(3, Math.round(width * 2.6));
+  const rows = Math.max(4, Math.round(height * 2.1));
+  const cellW = texW / cols;
+  const cellH = texH / rows;
+  const marginRows = 1;
+
+  for (let r = marginRows; r < rows - 1; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (Math.random() > 0.36) continue;
+      const pad = Math.min(cellW, cellH) * 0.22;
+      ctx.globalAlpha = 0.5 + Math.random() * 0.5;
+      ctx.fillStyle = WINDOW_PALETTE[Math.floor(Math.random() * WINDOW_PALETTE.length)];
+      ctx.fillRect(c * cellW + pad, r * cellH + pad, cellW - pad * 2, cellH - pad * 2);
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
 
 function Building({ x, z, width, depth, height, seed }: BuildingSpec) {
   const rotationY = Math.atan2(-x, -z);
   const neonColor = seed > 0.5 ? '#00e5ff' : '#c026ff';
+  const facadeColor = FACADE_PALETTE[Math.floor(seed * FACADE_PALETTE.length) % FACADE_PALETTE.length];
+
   const edges = useMemo(
     () => new THREE.EdgesGeometry(new THREE.BoxGeometry(width, height, depth)),
     [width, height, depth]
   );
+  const windowMap = useMemo(() => makeWindowEmissiveTexture(width, height), [width, height]);
 
-  const windows = useMemo(() => {
-    const cols = Math.max(2, Math.round(width * 2.2));
-    const rows = Math.max(2, Math.round(height / 0.65));
-    const items: { pos: [number, number, number]; color: string }[] = [];
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        if (Math.random() > 0.4) continue;
-        const wx = -width / 2 + (c + 0.5) * (width / cols);
-        const wy = 0.4 + r * 0.65;
-        if (wy > height - 0.25) continue;
-        items.push({
-          pos: [wx, wy - height / 2, depth / 2 + 0.02],
-          color: WINDOW_PALETTE[Math.floor(Math.random() * WINDOW_PALETTE.length)],
-        });
-      }
-    }
-    return items;
-  }, [width, height, depth]);
-
-  const instRef = useRef<THREE.InstancedMesh>(null);
-
-  useEffect(() => {
-    const mesh = instRef.current;
-    if (!mesh) return;
-    const dummy = new THREE.Object3D();
-    windows.forEach((w, i) => {
-      dummy.position.set(w.pos[0], w.pos[1], w.pos[2]);
-      dummy.scale.set(0.16, 0.26, 1);
-      dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
-      mesh.setColorAt(i, new THREE.Color(w.color));
-    });
-    mesh.instanceMatrix.needsUpdate = true;
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-  }, [windows]);
+  const hasCap = seed > 0.55;
+  const hasAntenna = height > 11 && seed < 0.75;
+  const capSize = Math.min(width, depth) * 0.45;
 
   return (
     <group position={[x, height / 2, z]} rotation={[0, rotationY, 0]}>
-      <mesh>
+      <mesh castShadow receiveShadow>
         <boxGeometry args={[width, height, depth]} />
-        <meshStandardMaterial color="#0a0916" roughness={0.9} metalness={0.05} />
+        <meshStandardMaterial
+          color={facadeColor}
+          roughness={0.55 + seed * 0.3}
+          metalness={0.35}
+          emissiveMap={windowMap}
+          emissive="#ffffff"
+          emissiveIntensity={1.6}
+        />
       </mesh>
       <lineSegments geometry={edges}>
-        <lineBasicMaterial color={neonColor} transparent opacity={0.4} toneMapped={false} />
+        <lineBasicMaterial color={neonColor} transparent opacity={0.35} toneMapped={false} />
       </lineSegments>
-      {windows.length > 0 && (
-        <instancedMesh ref={instRef} args={[undefined, undefined, windows.length]} frustumCulled={false}>
-          <planeGeometry args={[1, 1]} />
-          <meshBasicMaterial toneMapped={false} />
-        </instancedMesh>
+      {hasCap && (
+        <mesh position={[0, height / 2 + capSize * 0.3, 0]}>
+          <boxGeometry args={[capSize, capSize * 0.6, capSize]} />
+          <meshStandardMaterial color={facadeColor} roughness={0.6} metalness={0.4} />
+        </mesh>
+      )}
+      {hasAntenna && (
+        <mesh position={[0, height / 2 + 1.1, 0]}>
+          <cylinderGeometry args={[0.03, 0.05, 2.2, 6]} />
+          <meshStandardMaterial color="#1a1a1a" roughness={0.4} metalness={0.7} />
+        </mesh>
+      )}
+      {hasAntenna && (
+        <mesh position={[0, height / 2 + 2.2, 0]}>
+          <sphereGeometry args={[0.06, 8, 8]} />
+          <meshBasicMaterial color={neonColor} toneMapped={false} />
+        </mesh>
       )}
     </group>
   );

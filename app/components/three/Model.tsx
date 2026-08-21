@@ -103,7 +103,7 @@ export default function Model() {
     }
 
     if (lensMeshRef.current) {
-      const mat = lensMeshRef.current.material as THREE.MeshStandardMaterial;
+      const mat = (lensMeshRef.current as THREE.Mesh).material as THREE.MeshStandardMaterial;
       mat.emissive.set('#00e5ff');
       const targetGlow = lensLight ? Math.min(lensLight.intensity / 2.5, 2) : 0;
       mat.emissiveIntensity = THREE.MathUtils.lerp(mat.emissiveIntensity ?? 0, targetGlow, delta * 8);
