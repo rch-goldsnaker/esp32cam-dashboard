@@ -110,10 +110,10 @@ function CitySkyline() {
   const buildings = useMemo(() => {
     const list: BuildingSpec[] = [];
     const rings = [
-      { radius: 30, count: 18, minH: 4, maxH: 10 },
-      { radius: 45, count: 24, minH: 6, maxH: 16 },
-      { radius: 62, count: 28, minH: 9, maxH: 24 },
-      { radius: 80, count: 32, minH: 12, maxH: 30 },
+      { radius: 30, count: 14, minH: 16, maxH: 26 },
+      { radius: 45, count: 18, minH: 20, maxH: 34 },
+      { radius: 62, count: 22, minH: 24, maxH: 42 },
+      { radius: 80, count: 26, minH: 28, maxH: 50 },
     ];
     rings.forEach((ring) => {
       for (let i = 0; i < ring.count; i++) {
@@ -122,8 +122,8 @@ function CitySkyline() {
         list.push({
           x: Math.sin(angle) * r,
           z: Math.cos(angle) * r,
-          width: 1.4 + Math.random() * 2.2,
-          depth: 1.4 + Math.random() * 2.2,
+          width: 3 + Math.random() * 4,
+          depth: 3 + Math.random() * 4,
           height: ring.minH + Math.random() * (ring.maxH - ring.minH),
           seed: Math.random(),
         });
@@ -136,6 +136,89 @@ function CitySkyline() {
     <group renderOrder={-5}>
       {buildings.map((b, i) => (
         <Building key={i} {...b} />
+      ))}
+    </group>
+  );
+}
+
+function StreetLamp({ x, z }: { x: number; z: number }) {
+  const color = '#7ce8ff';
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, 1.1, 0]} castShadow>
+        <cylinderGeometry args={[0.04, 0.06, 2.2, 6]} />
+        <meshStandardMaterial color="#141418" roughness={0.5} metalness={0.6} />
+      </mesh>
+      <mesh position={[0, 2.15, 0.18]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.03, 0.03, 0.4, 6]} />
+        <meshStandardMaterial color="#141418" roughness={0.5} metalness={0.6} />
+      </mesh>
+      <mesh position={[0, 2.08, 0.36]}>
+        <sphereGeometry args={[0.1, 8, 8]} />
+        <meshBasicMaterial color={color} toneMapped={false} />
+      </mesh>
+    </group>
+  );
+}
+
+interface RoadSpec {
+  angle: number;
+  length: number;
+}
+
+function Road({ angle, length }: RoadSpec) {
+  const roadWidth = 3.2;
+  const startD = 8;
+  const lampSpacing = 15;
+
+  const lampPositions = useMemo(() => {
+    const arr: number[] = [];
+    for (let d = startD + 4; d < length - 3; d += lampSpacing) arr.push(d);
+    return arr;
+  }, [length]);
+
+  const dashes = useMemo(() => {
+    const arr: number[] = [];
+    for (let d = startD; d < length; d += 4.5) arr.push(d);
+    return arr;
+  }, [length]);
+
+  return (
+    <group rotation={[0, angle, 0]}>
+      <mesh position={[0, 0.004, startD + length / 2]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[roadWidth, length]} />
+        <meshStandardMaterial color="#0c0c11" roughness={0.95} metalness={0.05} />
+      </mesh>
+      {dashes.map((d, i) => (
+        <mesh key={i} position={[0, 0.006, d]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[0.08, 1.3]} />
+          <meshBasicMaterial color="#ffd166" toneMapped={false} transparent opacity={0.75} />
+        </mesh>
+      ))}
+      {lampPositions.map((d, i) => (
+        <group key={i}>
+          <StreetLamp x={roadWidth / 2 + 0.35} z={d} />
+          <StreetLamp x={-(roadWidth / 2 + 0.35)} z={d} />
+        </group>
+      ))}
+    </group>
+  );
+}
+
+function StreetGrid() {
+  const roads = useMemo(() => {
+    const count = 8;
+    const list: RoadSpec[] = [];
+    for (let i = 0; i < count; i++) {
+      list.push({ angle: (i / count) * Math.PI * 2, length: 70 });
+    }
+    return list;
+  }, []);
+
+  return (
+    <group renderOrder={-4}>
+      {roads.map((r, i) => (
+        <Road key={i} {...r} />
       ))}
     </group>
   );
@@ -164,6 +247,7 @@ export default function Scene() {
           <fog attach="fog" args={['#0a0a14', 20, 95]} />
 
           <CitySkyline />
+          <StreetGrid />
 
           <ambientLight intensity={0.3} />
           <directionalLight
