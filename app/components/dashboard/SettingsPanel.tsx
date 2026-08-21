@@ -103,7 +103,7 @@ export default function SettingsPanel() {
               className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[10px] text-zinc-200 outline-none focus:border-cyan-400 cursor-pointer"
             >
               {Object.entries(FRAME_SIZE_LABELS).map(([k, v]) => (
-                <option key={k} value={k}>{`${k} → ${v}`}</option>
+                <option key={k} value={k} className="bg-zinc-900 text-zinc-200">{`${k} → ${v}`}</option>
               ))}
             </select>
           </div>

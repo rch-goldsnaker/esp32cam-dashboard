@@ -264,7 +264,7 @@ export default function DeviceStatusBar() {
 
       {/* TOP RIGHT — Camera Position */}
       <div className="absolute top-3 right-3 pointer-events-none z-10">
-        <div className={panelClasses('min-w-[180px] space-y-1.5')}>
+        <div className={panelClasses('min-w-[210px] space-y-1.5')}>
           <SectionTitle>Camera</SectionTitle>
           <div className="space-y-1.5">
             <Stat
@@ -286,35 +286,35 @@ export default function DeviceStatusBar() {
               tooltip="Distance between camera and target"
             />
           </div>
-          <div className="flex gap-1.5 pt-1">
+          <div className="grid grid-cols-3 gap-1 pt-1">
             <button
               onClick={() => setModelRotating(!modelRotating)}
               title="Toggle 3D model rotation"
-              className={`flex-1 flex items-center justify-center gap-1 py-1 rounded text-[10px] cursor-pointer pointer-events-auto ${
+              className={`flex flex-col items-center justify-center gap-0.5 py-1.5 rounded text-[9px] leading-none cursor-pointer pointer-events-auto ${
                 modelRotating ? 'bg-cyan-500 text-zinc-950 shadow-[0_0_12px_-2px_rgba(34,211,238,0.8)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/5'
               }`}
             >
-              {modelRotating ? <RotateCw className="w-3 h-3" /> : <Pause className="w-3 h-3" />}
-              Rotation
+              {modelRotating ? <RotateCw className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
+              Rotate
             </button>
             <button
               onClick={() => setModelVisible(!modelVisible)}
               title="Show or hide the 3D model"
-              className={`flex-1 flex items-center justify-center gap-1 py-1 rounded text-[10px] cursor-pointer pointer-events-auto ${
+              className={`flex flex-col items-center justify-center gap-0.5 py-1.5 rounded text-[9px] leading-none cursor-pointer pointer-events-auto ${
                 modelVisible ? 'bg-cyan-500 text-zinc-950 shadow-[0_0_12px_-2px_rgba(34,211,238,0.8)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/5'
               }`}
             >
-              {modelVisible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+              {modelVisible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
               Model
             </button>
             <button
               onClick={() => setEnvironmentVisible(!environmentVisible)}
               title="Show or hide the city environment (buildings + moon)"
-              className={`flex-1 flex items-center justify-center gap-1 py-1 rounded text-[10px] cursor-pointer pointer-events-auto ${
+              className={`flex flex-col items-center justify-center gap-0.5 py-1.5 rounded text-[9px] leading-none cursor-pointer pointer-events-auto ${
                 environmentVisible ? 'bg-violet-500 text-zinc-950 shadow-[0_0_12px_-2px_rgba(168,85,247,0.8)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/5'
               }`}
             >
-              <Building2 className="w-3 h-3" />
+              <Building2 className="w-3.5 h-3.5" />
               Env
             </button>
           </div>
