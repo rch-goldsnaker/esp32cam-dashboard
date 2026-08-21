@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { X, Maximize2, Minimize2, Download, Square } from 'lucide-react';
+import { X, ZoomIn, ZoomOut, Download, Square } from 'lucide-react';
 import { useESP32Store } from '@/app/store/esp32Store';
 import { RES_MAP } from '@/app/lib/constants';
 
@@ -30,7 +30,9 @@ export default function CameraStreamPanel({ streaming, frameSize, quality }: Pro
   const streamingRef = useRef(streaming);
   const [streamDismissed, setStreamDismissed] = useState(false);
   const [captureDismissed, setCaptureDismissed] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const MIN_ZOOM = 1;
+  const MAX_ZOOM = 4;
   const recording = useESP32Store((s) => s.recording);
   const recordProgress = useESP32Store((s) => s.recordProgress);
   const recordedBlobUrl = useESP32Store((s) => s.recordedBlobUrl);
@@ -298,15 +300,29 @@ export default function CameraStreamPanel({ streaming, frameSize, quality }: Pro
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] text-cyan-400/70 font-mono">
-                  FPS: {fps} | {RES_MAP[frameSize] ?? '640x480'}
+                  FPS: {fps} | {aspect.w}x{aspect.h}
                 </span>
-                <button
-                  onClick={() => setExpanded(!expanded)}
-                  className="p-0.5 rounded hover:bg-white/10 transition-colors text-zinc-400 hover:text-cyan-300"
-                  title={expanded ? 'Original' : 'Ampliar'}
-                >
-                  {expanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-                </button>
+                <div className="flex items-center gap-0.5 bg-white/5 rounded-md px-0.5">
+                  <button
+                    onClick={() => setZoom((z) => Math.max(MIN_ZOOM, z - 1))}
+                    disabled={zoom <= MIN_ZOOM}
+                    className="p-0.5 rounded hover:bg-white/10 transition-colors text-zinc-400 hover:text-cyan-300 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-default cursor-pointer"
+                    title="Reducir"
+                  >
+                    <ZoomOut size={14} />
+                  </button>
+                  <span className="text-[10px] font-mono text-zinc-300 w-6 text-center select-none">
+                    {zoom}x
+                  </span>
+                  <button
+                    onClick={() => setZoom((z) => Math.min(MAX_ZOOM, z + 1))}
+                    disabled={zoom >= MAX_ZOOM}
+                    className="p-0.5 rounded hover:bg-white/10 transition-colors text-zinc-400 hover:text-cyan-300 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-default cursor-pointer"
+                    title="Ampliar"
+                  >
+                    <ZoomIn size={14} />
+                  </button>
+                </div>
                 <button
                   onClick={() => setStreamDismissed(true)}
                   className="p-0.5 rounded hover:bg-white/10 transition-colors text-zinc-400 hover:text-zinc-200"
@@ -317,8 +333,13 @@ export default function CameraStreamPanel({ streaming, frameSize, quality }: Pro
             </div>
             <canvas
               ref={canvasRef}
-              className={`${expanded ? 'w-[640px] h-[480px]' : 'w-full'} block transition-all duration-300`}
-              style={expanded ? undefined : { aspectRatio: `${aspect.w} / ${aspect.h}`, maxWidth: 320 }}
+              className="block transition-[width,height] duration-200"
+              style={{
+                aspectRatio: `${aspect.w} / ${aspect.h}`,
+                width: aspect.w * zoom,
+                maxWidth: '92vw',
+                maxHeight: '78vh',
+              }}
               width={640}
               height={480}
             />
