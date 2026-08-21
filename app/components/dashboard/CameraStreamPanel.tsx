@@ -333,7 +333,7 @@ export default function CameraStreamPanel({ streaming, frameSize, quality }: Pro
             </div>
             <canvas
               ref={canvasRef}
-              className="block transition-[width,height] duration-200"
+              className="block mx-auto bg-black transition-[width,height] duration-200"
               style={{
                 aspectRatio: `${aspect.w} / ${aspect.h}`,
                 width: aspect.w * zoom,
