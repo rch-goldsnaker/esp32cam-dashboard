@@ -27,10 +27,41 @@ export default function BottomMenu({ onOpenSettings, onOpenConexion }: Props) {
   const stopRecording = useESP32Store((s) => s.stopRecording);
 
   const [tooltip, setTooltip] = useState<string | null>(null);
+  const [bursts, setBursts] = useState<Record<string, number>>({});
+
+  const bump = useCallback((key: string) => {
+    setBursts((b) => ({ ...b, [key]: (b[key] ?? 0) + 1 }));
+  }, []);
 
   const handleStreamToggle = useCallback(async () => {
+    bump('stream');
     await setStreamEnabled(!streamEnabled);
-  }, [streamEnabled, setStreamEnabled]);
+  }, [streamEnabled, setStreamEnabled, bump]);
+
+  const handleFlashToggle = useCallback(() => {
+    bump('flash');
+    toggleFlash();
+  }, [toggleFlash, bump]);
+
+  const handleCapture = useCallback(() => {
+    bump('capture');
+    useESP32Store.getState().captureNow();
+  }, [bump]);
+
+  const handleRecordToggle = useCallback(() => {
+    bump('record');
+    recording ? stopRecording() : startRecording();
+  }, [recording, stopRecording, startRecording, bump]);
+
+  const handleSettings = useCallback(() => {
+    bump('settings');
+    onOpenSettings();
+  }, [onOpenSettings, bump]);
+
+  const handleConexion = useCallback(() => {
+    bump('conexion');
+    onOpenConexion();
+  }, [onOpenConexion, bump]);
 
   return (
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
@@ -41,6 +72,8 @@ export default function BottomMenu({ onOpenSettings, onOpenConexion }: Props) {
           activeColor="text-cyan-400"
           onClick={handleStreamToggle}
           onHover={setTooltip}
+          glow={streamEnabled}
+          burstKey={bursts.stream}
         >
           <Video className="w-5 h-5" />
         </MenuButton>
@@ -49,8 +82,9 @@ export default function BottomMenu({ onOpenSettings, onOpenConexion }: Props) {
           label="Capture photo"
           active={false}
           activeColor="text-green-400"
-          onClick={() => useESP32Store.getState().captureNow()}
+          onClick={handleCapture}
           onHover={setTooltip}
+          burstKey={bursts.capture}
         >
           <Camera className="w-5 h-5" />
         </MenuButton>
@@ -59,8 +93,10 @@ export default function BottomMenu({ onOpenSettings, onOpenConexion }: Props) {
           label={recording ? 'Stop recording' : 'Record video'}
           active={recording}
           activeColor="text-red-400"
-          onClick={() => recording ? stopRecording() : startRecording()}
+          onClick={handleRecordToggle}
           onHover={setTooltip}
+          glow={recording}
+          burstKey={bursts.record}
         >
           {recording ? <Square className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
         </MenuButton>
@@ -69,10 +105,12 @@ export default function BottomMenu({ onOpenSettings, onOpenConexion }: Props) {
           label={flashLedOn ? 'Turn off flash' : 'Turn on flash'}
           active={flashLedOn}
           activeColor="text-yellow-400"
-          onClick={() => toggleFlash()}
+          onClick={handleFlashToggle}
           onHover={setTooltip}
+          glow={flashLedOn}
+          burstKey={bursts.flash}
         >
-          <Zap className="w-5 h-5" />
+          <Zap className="w-5 h-5" fill={flashLedOn ? 'currentColor' : 'none'} />
         </MenuButton>
 
         <Divider />
@@ -81,8 +119,9 @@ export default function BottomMenu({ onOpenSettings, onOpenConexion }: Props) {
           label="Settings"
           active={false}
           activeColor="text-zinc-300"
-          onClick={onOpenSettings}
+          onClick={handleSettings}
           onHover={setTooltip}
+          burstKey={bursts.settings}
         >
           <Settings className="w-5 h-5" />
         </MenuButton>
@@ -91,8 +130,9 @@ export default function BottomMenu({ onOpenSettings, onOpenConexion }: Props) {
           label="Connection"
           active={false}
           activeColor="text-zinc-300"
-          onClick={onOpenConexion}
+          onClick={handleConexion}
           onHover={setTooltip}
+          burstKey={bursts.conexion}
         >
           <Link className="w-5 h-5" />
         </MenuButton>
@@ -118,6 +158,8 @@ function MenuButton({
   onClick,
   onHover,
   children,
+  glow = false,
+  burstKey,
 }: {
   label: string;
   active: boolean;
@@ -125,6 +167,8 @@ function MenuButton({
   onClick: () => void;
   onHover: (label: string | null) => void;
   children: React.ReactNode;
+  glow?: boolean;
+  burstKey?: number;
 }) {
   const colorClass = active ? activeColor : 'text-zinc-400 hover:text-zinc-200';
 
@@ -136,10 +180,17 @@ function MenuButton({
       className={`relative w-11 h-11 flex items-center justify-center rounded-xl transition-all cursor-pointer
         hover:bg-zinc-800 hover:scale-105 active:scale-95
         ${colorClass}
-        ${active ? 'bg-zinc-800/70' : ''}`}
+        ${active ? 'bg-zinc-800/70' : ''}
+        ${glow ? 'flash-glow' : ''}`}
     >
       {active && (
         <span className="absolute inset-0 rounded-xl ring-1 ring-current opacity-50" />
+      )}
+      {!!burstKey && (
+        <span
+          key={burstKey}
+          className={`flash-burst absolute inset-0 rounded-full pointer-events-none ${activeColor}`}
+        />
       )}
       {children}
     </button>
