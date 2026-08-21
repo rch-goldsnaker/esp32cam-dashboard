@@ -285,83 +285,10 @@ function makeMoonHaloTexture(color: string): THREE.Texture {
   return texture;
 }
 
-function makeMoonSurfaceTexture(): THREE.Texture {
-  const size = 512;
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext('2d')!;
-
-  const base = ctx.createRadialGradient(
-    size * 0.42,
-    size * 0.4,
-    size * 0.05,
-    size * 0.5,
-    size * 0.5,
-    size * 0.7
-  );
-  base.addColorStop(0, '#f4f1ea');
-  base.addColorStop(0.55, '#d9d3c6');
-  base.addColorStop(1, '#aca493');
-  ctx.fillStyle = base;
-  ctx.fillRect(0, 0, size, size);
-
-  // large dark maria patches
-  for (let i = 0; i < 6; i++) {
-    const mx = Math.random() * size;
-    const my = Math.random() * size;
-    const mr = size * (0.08 + Math.random() * 0.12);
-    const g = ctx.createRadialGradient(mx, my, 0, mx, my, mr);
-    g.addColorStop(0, 'rgba(90,88,84,0.45)');
-    g.addColorStop(1, 'rgba(90,88,84,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(mx, my, mr, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // craters: soft dark rim + lighter interior
-  for (let i = 0; i < 90; i++) {
-    const cx = Math.random() * size;
-    const cy = Math.random() * size;
-    const r = size * (0.006 + Math.random() * 0.03);
-
-    const rim = ctx.createRadialGradient(cx, cy, r * 0.6, cx, cy, r);
-    rim.addColorStop(0, 'rgba(0,0,0,0)');
-    rim.addColorStop(0.75, 'rgba(60,56,50,0.35)');
-    rim.addColorStop(1, 'rgba(60,56,50,0)');
-    ctx.fillStyle = rim;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fill();
-
-    const inner = ctx.createRadialGradient(
-      cx - r * 0.15,
-      cy - r * 0.15,
-      0,
-      cx,
-      cy,
-      r * 0.7
-    );
-    inner.addColorStop(0, 'rgba(255,255,255,0.12)');
-    inner.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = inner;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r * 0.7, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.needsUpdate = true;
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
-
 const MOON_POSITION: [number, number, number] = [-38, 55, -85];
 
 function Moon() {
   const haloTex = useMemo(() => makeMoonHaloTexture('#cfe8ff'), []);
-  const surfaceTex = useMemo(() => makeMoonSurfaceTexture(), []);
 
   return (
     <group position={MOON_POSITION}>
@@ -374,9 +301,9 @@ function Moon() {
           fog={false}
         />
       </sprite>
-      <mesh rotation={[0.15, 0.6, 0]}>
+      <mesh>
         <sphereGeometry args={[10, 48, 48]} />
-        <meshBasicMaterial map={surfaceTex} toneMapped={false} fog={false} />
+        <meshBasicMaterial color="#eaf4ff" toneMapped={false} fog={false} />
       </mesh>
     </group>
   );
