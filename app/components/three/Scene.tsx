@@ -110,9 +110,10 @@ function CitySkyline() {
   const buildings = useMemo(() => {
     const list: BuildingSpec[] = [];
     const rings = [
-      { radius: 15, count: 12, minH: 2.5, maxH: 6 },
-      { radius: 24, count: 16, minH: 4, maxH: 11 },
-      { radius: 36, count: 20, minH: 7, maxH: 19 },
+      { radius: 30, count: 18, minH: 4, maxH: 10 },
+      { radius: 45, count: 24, minH: 6, maxH: 16 },
+      { radius: 62, count: 28, minH: 9, maxH: 24 },
+      { radius: 80, count: 32, minH: 12, maxH: 30 },
     ];
     rings.forEach((ring) => {
       for (let i = 0; i < ring.count; i++) {
@@ -160,7 +161,7 @@ export default function Scene() {
         gl={{ antialias: true, alpha: false, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
       >
         <Suspense fallback={null}>
-          <fog attach="fog" args={['#0a0a14', 10, 46]} />
+          <fog attach="fog" args={['#0a0a14', 20, 95]} />
 
           <CitySkyline />
 
@@ -196,7 +197,7 @@ export default function Scene() {
             far={4}
           />
 
-          <Stars radius={50} depth={50} count={2000} factor={4} saturation={0} fade speed={1} />
+          <Stars radius={90} depth={60} count={3000} factor={4} saturation={0} fade speed={1} />
 
           <CameraTracker />
 
@@ -209,7 +210,7 @@ export default function Scene() {
             sectionSize={1}
             sectionThickness={1.2}
             sectionColor="#4c1d95"
-            fadeDistance={30}
+            fadeDistance={55}
             fadeStrength={1}
             infiniteGrid
           />
