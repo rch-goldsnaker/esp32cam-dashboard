@@ -6,11 +6,13 @@ interface CameraState {
   distance: number;
   modelVisible: boolean;
   modelRotating: boolean;
+  environmentVisible: boolean;
   setPosition: (pos: [number, number, number]) => void;
   setTarget: (target: [number, number, number]) => void;
   setDistance: (d: number) => void;
   setModelVisible: (v: boolean) => void;
   setModelRotating: (v: boolean) => void;
+  setEnvironmentVisible: (v: boolean) => void;
 }
 
 export const useCameraStore = create<CameraState>((set) => ({
@@ -19,9 +21,11 @@ export const useCameraStore = create<CameraState>((set) => ({
   distance: 4.74,
   modelVisible: true,
   modelRotating: true,
+  environmentVisible: false,
   setPosition: (position) => set({ position }),
   setTarget: (target) => set({ target }),
   setDistance: (distance) => set({ distance }),
   setModelVisible: (modelVisible) => set({ modelVisible }),
   setModelRotating: (modelRotating) => set({ modelRotating }),
+  setEnvironmentVisible: (environmentVisible) => set({ environmentVisible }),
 }));

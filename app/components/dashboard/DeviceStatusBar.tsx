@@ -17,6 +17,7 @@ import {
   Pause,
   Eye,
   EyeOff,
+  Building2,
 } from 'lucide-react';
 import { useDeviceStatus } from '@/app/hooks/useDeviceStatus';
 import { useCameraStore } from '@/app/store/cameraStore';
@@ -121,8 +122,10 @@ export default function DeviceStatusBar() {
   const camDist = useCameraStore((s) => s.distance);
   const modelVisible = useCameraStore((s) => s.modelVisible);
   const modelRotating = useCameraStore((s) => s.modelRotating);
+  const environmentVisible = useCameraStore((s) => s.environmentVisible);
   const setModelVisible = useCameraStore((s) => s.setModelVisible);
   const setModelRotating = useCameraStore((s) => s.setModelRotating);
+  const setEnvironmentVisible = useCameraStore((s) => s.setEnvironmentVisible);
 
   if (!deviceIdConfigured) {
     return (
@@ -303,6 +306,16 @@ export default function DeviceStatusBar() {
             >
               {modelVisible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
               Model
+            </button>
+            <button
+              onClick={() => setEnvironmentVisible(!environmentVisible)}
+              title="Show or hide the city environment (buildings + moon)"
+              className={`flex-1 flex items-center justify-center gap-1 py-1 rounded text-[10px] cursor-pointer pointer-events-auto ${
+                environmentVisible ? 'bg-violet-500 text-zinc-950 shadow-[0_0_12px_-2px_rgba(168,85,247,0.8)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/5'
+              }`}
+            >
+              <Building2 className="w-3 h-3" />
+              Env
             </button>
           </div>
         </div>

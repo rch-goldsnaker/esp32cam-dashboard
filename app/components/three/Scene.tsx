@@ -7,6 +7,7 @@ import { EffectComposer, Bloom, Vignette, ChromaticAberration } from '@react-thr
 import * as THREE from 'three';
 import Model from './Model';
 import CameraTracker from './CameraTracker';
+import { useCameraStore } from '@/app/store/cameraStore';
 
 interface BuildingSpec {
   x: number;
@@ -321,6 +322,8 @@ function Fallback() {
 }
 
 export default function Scene() {
+  const environmentVisible = useCameraStore((s) => s.environmentVisible);
+
   return (
     <div className="w-full h-full min-h-0">
       <Canvas
@@ -331,8 +334,12 @@ export default function Scene() {
         <Suspense fallback={null}>
           <fog attach="fog" args={['#0a0a14', 20, 95]} />
 
-          <CitySkyline />
-          <Moon />
+          {environmentVisible && (
+            <>
+              <CitySkyline />
+              <Moon />
+            </>
+          )}
 
           <ambientLight intensity={0.3} />
           <directionalLight
