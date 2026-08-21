@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useMemo } from 'react';
+import { Suspense, useEffect, useMemo, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Environment, ContactShadows, Grid, Stars } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette, ChromaticAberration } from '@react-three/postprocessing';
@@ -8,51 +8,110 @@ import * as THREE from 'three';
 import Model from './Model';
 import CameraTracker from './CameraTracker';
 
-function makeGlowTexture(color: string): THREE.Texture {
-  const size = 256;
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext('2d')!;
-  const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  gradient.addColorStop(0, `${color}ff`);
-  gradient.addColorStop(0.35, `${color}88`);
-  gradient.addColorStop(1, `${color}00`);
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, size, size);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.needsUpdate = true;
-  return texture;
+interface BuildingSpec {
+  x: number;
+  z: number;
+  width: number;
+  depth: number;
+  height: number;
+  seed: number;
 }
 
-function BackgroundGlow() {
-  const cyanTex = useMemo(() => makeGlowTexture('#00e5ff'), []);
-  const magentaTex = useMemo(() => makeGlowTexture('#c026ff'), []);
+const WINDOW_PALETTE = ['#7ce8ff', '#ff5fe0', '#ffd166', '#9d7bff'];
+
+function Building({ x, z, width, depth, height, seed }: BuildingSpec) {
+  const rotationY = Math.atan2(-x, -z);
+  const neonColor = seed > 0.5 ? '#00e5ff' : '#c026ff';
+  const edges = useMemo(
+    () => new THREE.EdgesGeometry(new THREE.BoxGeometry(width, height, depth)),
+    [width, height, depth]
+  );
+
+  const windows = useMemo(() => {
+    const cols = Math.max(2, Math.round(width * 2.2));
+    const rows = Math.max(2, Math.round(height / 0.65));
+    const items: { pos: [number, number, number]; color: string }[] = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (Math.random() > 0.4) continue;
+        const wx = -width / 2 + (c + 0.5) * (width / cols);
+        const wy = 0.4 + r * 0.65;
+        if (wy > height - 0.25) continue;
+        items.push({
+          pos: [wx, wy - height / 2, depth / 2 + 0.02],
+          color: WINDOW_PALETTE[Math.floor(Math.random() * WINDOW_PALETTE.length)],
+        });
+      }
+    }
+    return items;
+  }, [width, height, depth]);
+
+  const instRef = useRef<THREE.InstancedMesh>(null);
+
+  useEffect(() => {
+    const mesh = instRef.current;
+    if (!mesh) return;
+    const dummy = new THREE.Object3D();
+    windows.forEach((w, i) => {
+      dummy.position.set(w.pos[0], w.pos[1], w.pos[2]);
+      dummy.scale.set(0.16, 0.26, 1);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+      mesh.setColorAt(i, new THREE.Color(w.color));
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  }, [windows]);
 
   return (
-    <group renderOrder={-10}>
-      <sprite position={[-9, 7, -22]} scale={[34, 34, 1]}>
-        <spriteMaterial
-          map={cyanTex}
-          color="#00e5ff"
-          transparent
-          opacity={0.55}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          fog={false}
-        />
-      </sprite>
-      <sprite position={[12, 4, -26]} scale={[26, 26, 1]}>
-        <spriteMaterial
-          map={magentaTex}
-          color="#c026ff"
-          transparent
-          opacity={0.4}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          fog={false}
-        />
-      </sprite>
+    <group position={[x, height / 2, z]} rotation={[0, rotationY, 0]}>
+      <mesh>
+        <boxGeometry args={[width, height, depth]} />
+        <meshStandardMaterial color="#0a0916" roughness={0.9} metalness={0.05} />
+      </mesh>
+      <lineSegments geometry={edges}>
+        <lineBasicMaterial color={neonColor} transparent opacity={0.4} toneMapped={false} />
+      </lineSegments>
+      {windows.length > 0 && (
+        <instancedMesh ref={instRef} args={[undefined, undefined, windows.length]} frustumCulled={false}>
+          <planeGeometry args={[1, 1]} />
+          <meshBasicMaterial toneMapped={false} />
+        </instancedMesh>
+      )}
+    </group>
+  );
+}
+
+function CitySkyline() {
+  const buildings = useMemo(() => {
+    const list: BuildingSpec[] = [];
+    const rings = [
+      { radius: 15, count: 12, minH: 2.5, maxH: 6 },
+      { radius: 24, count: 16, minH: 4, maxH: 11 },
+      { radius: 36, count: 20, minH: 7, maxH: 19 },
+    ];
+    rings.forEach((ring) => {
+      for (let i = 0; i < ring.count; i++) {
+        const angle = (i / ring.count) * Math.PI * 2 + Math.random() * 0.3;
+        const r = ring.radius + (Math.random() - 0.5) * 4;
+        list.push({
+          x: Math.sin(angle) * r,
+          z: Math.cos(angle) * r,
+          width: 1.4 + Math.random() * 2.2,
+          depth: 1.4 + Math.random() * 2.2,
+          height: ring.minH + Math.random() * (ring.maxH - ring.minH),
+          seed: Math.random(),
+        });
+      }
+    });
+    return list;
+  }, []);
+
+  return (
+    <group renderOrder={-5}>
+      {buildings.map((b, i) => (
+        <Building key={i} {...b} />
+      ))}
     </group>
   );
 }
@@ -77,9 +136,9 @@ export default function Scene() {
         gl={{ antialias: true, alpha: false, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
       >
         <Suspense fallback={null}>
-          <fog attach="fog" args={['#0a0a14', 8, 35]} />
+          <fog attach="fog" args={['#0a0a14', 10, 46]} />
 
-          <BackgroundGlow />
+          <CitySkyline />
 
           <ambientLight intensity={0.3} />
           <directionalLight
