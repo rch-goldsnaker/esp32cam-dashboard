@@ -1,7 +1,7 @@
 'use client';
 
-import { Suspense, useMemo, useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Suspense, useMemo } from 'react';
+import { Canvas } from '@react-three/fiber';
 import { Environment, ContactShadows, Grid, Stars } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette, ChromaticAberration } from '@react-three/postprocessing';
 import * as THREE from 'three';
@@ -285,14 +285,87 @@ function makeMoonHaloTexture(color: string): THREE.Texture {
   return texture;
 }
 
-const MOON_POSITION: [number, number, number] = [-34, 48, -78];
+function makeMoonSurfaceTexture(): THREE.Texture {
+  const size = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+
+  const base = ctx.createRadialGradient(
+    size * 0.42,
+    size * 0.4,
+    size * 0.05,
+    size * 0.5,
+    size * 0.5,
+    size * 0.7
+  );
+  base.addColorStop(0, '#f4f1ea');
+  base.addColorStop(0.55, '#d9d3c6');
+  base.addColorStop(1, '#aca493');
+  ctx.fillStyle = base;
+  ctx.fillRect(0, 0, size, size);
+
+  // large dark maria patches
+  for (let i = 0; i < 6; i++) {
+    const mx = Math.random() * size;
+    const my = Math.random() * size;
+    const mr = size * (0.08 + Math.random() * 0.12);
+    const g = ctx.createRadialGradient(mx, my, 0, mx, my, mr);
+    g.addColorStop(0, 'rgba(90,88,84,0.45)');
+    g.addColorStop(1, 'rgba(90,88,84,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(mx, my, mr, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // craters: soft dark rim + lighter interior
+  for (let i = 0; i < 90; i++) {
+    const cx = Math.random() * size;
+    const cy = Math.random() * size;
+    const r = size * (0.006 + Math.random() * 0.03);
+
+    const rim = ctx.createRadialGradient(cx, cy, r * 0.6, cx, cy, r);
+    rim.addColorStop(0, 'rgba(0,0,0,0)');
+    rim.addColorStop(0.75, 'rgba(60,56,50,0.35)');
+    rim.addColorStop(1, 'rgba(60,56,50,0)');
+    ctx.fillStyle = rim;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    const inner = ctx.createRadialGradient(
+      cx - r * 0.15,
+      cy - r * 0.15,
+      0,
+      cx,
+      cy,
+      r * 0.7
+    );
+    inner.addColorStop(0, 'rgba(255,255,255,0.12)');
+    inner.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = inner;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.7, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+const MOON_POSITION: [number, number, number] = [-38, 55, -85];
 
 function Moon() {
   const haloTex = useMemo(() => makeMoonHaloTexture('#cfe8ff'), []);
+  const surfaceTex = useMemo(() => makeMoonSurfaceTexture(), []);
 
   return (
     <group position={MOON_POSITION}>
-      <sprite scale={[42, 42, 1]}>
+      <sprite scale={[75, 75, 1]}>
         <spriteMaterial
           map={haloTex}
           transparent
@@ -301,69 +374,10 @@ function Moon() {
           fog={false}
         />
       </sprite>
-      <mesh>
-        <sphereGeometry args={[5, 32, 32]} />
-        <meshBasicMaterial color="#eaf4ff" toneMapped={false} fog={false} />
+      <mesh rotation={[0.15, 0.6, 0]}>
+        <sphereGeometry args={[10, 48, 48]} />
+        <meshBasicMaterial map={surfaceTex} toneMapped={false} fog={false} />
       </mesh>
-    </group>
-  );
-}
-
-function Rocket() {
-  const groupRef = useRef<THREE.Group>(null);
-  const flameRef = useRef<THREE.Mesh>(null);
-  const flickerRef = useRef(0);
-  const tRef = useRef(0);
-
-  const start = useMemo(() => new THREE.Vector3(-9, 3, -20), []);
-  const end = useMemo(() => new THREE.Vector3(...MOON_POSITION), []);
-  const quaternion = useMemo(() => {
-    const dir = end.clone().sub(start).normalize();
-    return new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
-  }, [start, end]);
-
-  const DURATION = 22;
-
-  useFrame((_, delta) => {
-    tRef.current = (tRef.current + delta / DURATION) % 1;
-    if (groupRef.current) {
-      groupRef.current.position.lerpVectors(start, end, tRef.current);
-    }
-    flickerRef.current += delta * 24;
-    if (flameRef.current) {
-      const flicker = 0.85 + Math.sin(flickerRef.current) * 0.12 + Math.random() * 0.06;
-      flameRef.current.scale.set(1, flicker, 1);
-    }
-  });
-
-  return (
-    <group ref={groupRef} quaternion={quaternion} scale={2.6}>
-      <mesh position={[0, 0.5, 0]}>
-        <cylinderGeometry args={[0.15, 0.15, 1, 12]} />
-        <meshStandardMaterial color="#d8d8de" roughness={0.35} metalness={0.6} />
-      </mesh>
-      <mesh position={[0, 1.15, 0]}>
-        <coneGeometry args={[0.15, 0.4, 12]} />
-        <meshStandardMaterial color="#ff5fe0" roughness={0.4} metalness={0.3} toneMapped={false} />
-      </mesh>
-      {[0, 1, 2].map((i) => (
-        <mesh key={i} position={[0, 0.15, 0]} rotation={[0, (i / 3) * Math.PI * 2, 0]}>
-          <boxGeometry args={[0.02, 0.35, 0.3]} />
-          <meshStandardMaterial color="#00e5ff" roughness={0.5} metalness={0.4} toneMapped={false} />
-        </mesh>
-      ))}
-      <mesh ref={flameRef} position={[0, -0.35, 0]} rotation={[Math.PI, 0, 0]}>
-        <coneGeometry args={[0.13, 0.7, 10]} />
-        <meshBasicMaterial
-          color="#ffb347"
-          transparent
-          opacity={0.85}
-          toneMapped={false}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-        />
-      </mesh>
-      <pointLight position={[0, -0.35, 0]} intensity={1.2} color="#ffb347" distance={5} decay={2} />
     </group>
   );
 }
@@ -392,7 +406,6 @@ export default function Scene() {
 
           <CitySkyline />
           <Moon />
-          <Rocket />
 
           <ambientLight intensity={0.3} />
           <directionalLight
