@@ -15,64 +15,15 @@ interface BuildingSpec {
   depth: number;
   height: number;
   seed: number;
-  hasAd: boolean;
 }
 
 const WINDOW_PALETTE = ['#7ce8ff', '#ff5fe0', '#ffd166', '#9d7bff', '#ffffff'];
 const FACADE_PALETTE = ['#0b0a17', '#0e0a1e', '#0a1018', '#120a16', '#0a0e1a'];
-const AD_PALETTE = ['#00e5ff', '#ff2fd6', '#ffd166', '#7cff6b', '#9d7bff', '#ffffff'];
-
-function makeAdTexture(): THREE.CanvasTexture {
-  const w = 128;
-  const h = 176;
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext('2d')!;
-
-  ctx.fillStyle = Math.random() > 0.5 ? '#04030c' : '#020814';
-  ctx.fillRect(0, 0, w, h);
-
-  const frameColor = AD_PALETTE[Math.floor(Math.random() * AD_PALETTE.length)];
-  ctx.strokeStyle = frameColor;
-  ctx.lineWidth = 5;
-  ctx.strokeRect(4, 4, w - 8, h - 8);
-
-  const logoColor = AD_PALETTE[Math.floor(Math.random() * AD_PALETTE.length)];
-  const logoSize = 30 + Math.random() * 26;
-  ctx.fillStyle = logoColor;
-  if (Math.random() > 0.5) {
-    ctx.fillRect(w / 2 - logoSize / 2, 16, logoSize, logoSize);
-  } else {
-    ctx.beginPath();
-    ctx.arc(w / 2, 16 + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  let y = 16 + logoSize + 18;
-  const barCount = 3 + Math.floor(Math.random() * 3);
-  for (let i = 0; i < barCount; i++) {
-    ctx.fillStyle = AD_PALETTE[Math.floor(Math.random() * AD_PALETTE.length)];
-    const barW = 34 + Math.random() * (w - 68);
-    ctx.fillRect((w - barW) / 2, y, barW, 7);
-    y += 15;
-  }
-
-  ctx.globalAlpha = 0.15;
-  ctx.fillStyle = '#000000';
-  for (let sy = 0; sy < h; sy += 4) ctx.fillRect(0, sy, w, 2);
-  ctx.globalAlpha = 1;
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.needsUpdate = true;
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
 
 function makeWindowEmissiveTexture(
   width: number,
   height: number,
-  litChance = 0.36,
+  litChance = 0.16,
   mullionEvery = 4
 ): THREE.CanvasTexture {
   const texW = 128;
@@ -120,7 +71,7 @@ function Tower({
   yCenter,
   facadeColor,
   neonColor,
-  litChance = 0.36,
+  litChance = 0.16,
   showEdges = true,
 }: {
   width: number;
@@ -163,11 +114,10 @@ function Tower({
   );
 }
 
-function Building({ x, z, width, depth, height, seed, hasAd }: BuildingSpec) {
+function Building({ x, z, width, depth, height, seed }: BuildingSpec) {
   const rotationY = Math.atan2(-x, -z);
   const neonColor = seed > 0.5 ? '#00e5ff' : '#c026ff';
   const facadeColor = FACADE_PALETTE[Math.floor(seed * FACADE_PALETTE.length) % FACADE_PALETTE.length];
-  const adMap = useMemo(() => (hasAd ? makeAdTexture() : null), [hasAd]);
 
   const archetype = seed < 0.32 ? 'simple' : seed < 0.68 ? 'setback' : 'twin';
 
@@ -181,10 +131,6 @@ function Building({ x, z, width, depth, height, seed, hasAd }: BuildingSpec) {
   const hasBeam = height > 34;
   const capSize = Math.min(width, depth) * 0.4;
 
-  const adWidth = width * (0.42 + seed * 0.22);
-  const adHeight = adWidth * 1.35;
-  const adY = podiumH + towerH * (0.3 + (seed % 0.35));
-
   return (
     <group position={[x, 0, z]} rotation={[0, rotationY, 0]}>
       <Tower
@@ -194,7 +140,7 @@ function Building({ x, z, width, depth, height, seed, hasAd }: BuildingSpec) {
         yCenter={podiumH / 2}
         facadeColor={facadeColor}
         neonColor={neonColor}
-        litChance={0.6}
+        litChance={0.3}
         showEdges={false}
       />
 
@@ -269,12 +215,6 @@ function Building({ x, z, width, depth, height, seed, hasAd }: BuildingSpec) {
           <meshBasicMaterial color={neonColor} toneMapped={false} />
         </mesh>
       )}
-      {adMap && (
-        <mesh position={[0, adY, depth / 2 + 0.04]}>
-          <planeGeometry args={[adWidth, adHeight]} />
-          <meshBasicMaterial map={adMap} toneMapped={false} transparent />
-        </mesh>
-      )}
       {hasBeam && (
         <mesh position={[0, height + 20, 0]}>
           <cylinderGeometry args={[0.03, 0.5, 40, 12, 1, true]} />
@@ -313,7 +253,6 @@ function CitySkyline() {
           depth: 3 + Math.random() * 4,
           height: ring.minH + Math.random() * (ring.maxH - ring.minH),
           seed: Math.random(),
-          hasAd: Math.random() < 0.4,
         });
       }
     });
