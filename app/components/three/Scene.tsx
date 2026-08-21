@@ -69,7 +69,12 @@ function makeAdTexture(): THREE.CanvasTexture {
   return texture;
 }
 
-function makeWindowEmissiveTexture(width: number, height: number): THREE.CanvasTexture {
+function makeWindowEmissiveTexture(
+  width: number,
+  height: number,
+  litChance = 0.36,
+  mullionEvery = 4
+): THREE.CanvasTexture {
   const texW = 128;
   const texH = Math.max(64, Math.round(texW * (height / Math.max(width, 0.5))));
   const canvas = document.createElement('canvas');
@@ -87,7 +92,7 @@ function makeWindowEmissiveTexture(width: number, height: number): THREE.CanvasT
 
   for (let r = marginRows; r < rows - 1; r++) {
     for (let c = 0; c < cols; c++) {
-      if (Math.random() > 0.36) continue;
+      if (Math.random() > litChance) continue;
       const pad = Math.min(cellW, cellH) * 0.22;
       ctx.globalAlpha = 0.5 + Math.random() * 0.5;
       ctx.fillStyle = WINDOW_PALETTE[Math.floor(Math.random() * WINDOW_PALETTE.length)];
@@ -96,75 +101,182 @@ function makeWindowEmissiveTexture(width: number, height: number): THREE.CanvasT
   }
   ctx.globalAlpha = 1;
 
+  // subtle structural mullions between window bays for a less "flat" facade
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  for (let c = 0; c <= cols; c += mullionEvery) {
+    ctx.fillRect(c * cellW - 0.5, 0, 1, texH);
+  }
+
   const texture = new THREE.CanvasTexture(canvas);
   texture.needsUpdate = true;
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
 
-function Building({ x, z, width, depth, height, seed, hasAd }: BuildingSpec) {
-  const rotationY = Math.atan2(-x, -z);
-  const neonColor = seed > 0.5 ? '#00e5ff' : '#c026ff';
-  const facadeColor = FACADE_PALETTE[Math.floor(seed * FACADE_PALETTE.length) % FACADE_PALETTE.length];
-
+function Tower({
+  width,
+  depth,
+  height,
+  yCenter,
+  facadeColor,
+  neonColor,
+  litChance = 0.36,
+  showEdges = true,
+}: {
+  width: number;
+  depth: number;
+  height: number;
+  yCenter: number;
+  facadeColor: string;
+  neonColor: string;
+  litChance?: number;
+  showEdges?: boolean;
+}) {
   const edges = useMemo(
     () => new THREE.EdgesGeometry(new THREE.BoxGeometry(width, height, depth)),
     [width, height, depth]
   );
-  const windowMap = useMemo(() => makeWindowEmissiveTexture(width, height), [width, height]);
-  const adMap = useMemo(() => (hasAd ? makeAdTexture() : null), [hasAd]);
-
-  const hasCap = seed > 0.55;
-  const hasAntenna = height > 11 && seed < 0.75;
-  const hasBeam = height > 34;
-  const capSize = Math.min(width, depth) * 0.45;
-
-  const adWidth = width * (0.45 + seed * 0.25);
-  const adHeight = adWidth * 1.35;
-  const adY = height * (0.35 + (seed % 0.3));
+  const windowMap = useMemo(
+    () => makeWindowEmissiveTexture(width, height, litChance),
+    [width, height, litChance]
+  );
 
   return (
-    <group position={[x, height / 2, z]} rotation={[0, rotationY, 0]}>
+    <group position={[0, yCenter, 0]}>
       <mesh castShadow receiveShadow>
         <boxGeometry args={[width, height, depth]} />
         <meshStandardMaterial
           color={facadeColor}
-          roughness={0.55 + seed * 0.3}
-          metalness={0.35}
+          roughness={0.5}
+          metalness={0.4}
           emissiveMap={windowMap}
           emissive="#ffffff"
           emissiveIntensity={1.6}
         />
       </mesh>
-      <lineSegments geometry={edges}>
-        <lineBasicMaterial color={neonColor} transparent opacity={0.35} toneMapped={false} />
-      </lineSegments>
+      {showEdges && (
+        <lineSegments geometry={edges}>
+          <lineBasicMaterial color={neonColor} transparent opacity={0.3} toneMapped={false} />
+        </lineSegments>
+      )}
+    </group>
+  );
+}
+
+function Building({ x, z, width, depth, height, seed, hasAd }: BuildingSpec) {
+  const rotationY = Math.atan2(-x, -z);
+  const neonColor = seed > 0.5 ? '#00e5ff' : '#c026ff';
+  const facadeColor = FACADE_PALETTE[Math.floor(seed * FACADE_PALETTE.length) % FACADE_PALETTE.length];
+  const adMap = useMemo(() => (hasAd ? makeAdTexture() : null), [hasAd]);
+
+  const archetype = seed < 0.32 ? 'simple' : seed < 0.68 ? 'setback' : 'twin';
+
+  const podiumH = Math.min(4.5, Math.max(2, height * 0.1));
+  const podiumW = width * 1.22;
+  const podiumD = depth * 1.22;
+  const towerH = height - podiumH;
+
+  const hasCap = seed > 0.55;
+  const hasAntenna = height > 20 && seed < 0.8;
+  const hasBeam = height > 34;
+  const capSize = Math.min(width, depth) * 0.4;
+
+  const adWidth = width * (0.42 + seed * 0.22);
+  const adHeight = adWidth * 1.35;
+  const adY = podiumH + towerH * (0.3 + (seed % 0.35));
+
+  return (
+    <group position={[x, 0, z]} rotation={[0, rotationY, 0]}>
+      <Tower
+        width={podiumW}
+        depth={podiumD}
+        height={podiumH}
+        yCenter={podiumH / 2}
+        facadeColor={facadeColor}
+        neonColor={neonColor}
+        litChance={0.6}
+        showEdges={false}
+      />
+
+      {archetype === 'twin' ? (
+        <>
+          <group position={[-(width * 0.28), 0, 0]}>
+            <Tower
+              width={width * 0.42}
+              depth={depth * 0.85}
+              height={towerH}
+              yCenter={podiumH + towerH / 2}
+              facadeColor={facadeColor}
+              neonColor={neonColor}
+            />
+          </group>
+          <group position={[width * 0.28, 0, 0]}>
+            <Tower
+              width={width * 0.42}
+              depth={depth * 0.85}
+              height={towerH * 0.88}
+              yCenter={podiumH + (towerH * 0.88) / 2}
+              facadeColor={facadeColor}
+              neonColor={neonColor}
+            />
+          </group>
+        </>
+      ) : archetype === 'setback' ? (
+        <>
+          <Tower
+            width={width}
+            depth={depth}
+            height={towerH * 0.62}
+            yCenter={podiumH + (towerH * 0.62) / 2}
+            facadeColor={facadeColor}
+            neonColor={neonColor}
+          />
+          <Tower
+            width={width * 0.66}
+            depth={depth * 0.66}
+            height={towerH * 0.38}
+            yCenter={podiumH + towerH * 0.62 + (towerH * 0.38) / 2}
+            facadeColor={facadeColor}
+            neonColor={neonColor}
+          />
+        </>
+      ) : (
+        <Tower
+          width={width}
+          depth={depth}
+          height={towerH}
+          yCenter={podiumH + towerH / 2}
+          facadeColor={facadeColor}
+          neonColor={neonColor}
+        />
+      )}
+
       {hasCap && (
-        <mesh position={[0, height / 2 + capSize * 0.3, 0]}>
+        <mesh position={[0, height + capSize * 0.3, 0]}>
           <boxGeometry args={[capSize, capSize * 0.6, capSize]} />
           <meshStandardMaterial color={facadeColor} roughness={0.6} metalness={0.4} />
         </mesh>
       )}
       {hasAntenna && (
-        <mesh position={[0, height / 2 + 1.1, 0]}>
+        <mesh position={[0, height + 1.1, 0]}>
           <cylinderGeometry args={[0.03, 0.05, 2.2, 6]} />
           <meshStandardMaterial color="#1a1a1a" roughness={0.4} metalness={0.7} />
         </mesh>
       )}
       {hasAntenna && (
-        <mesh position={[0, height / 2 + 2.2, 0]}>
+        <mesh position={[0, height + 2.2, 0]}>
           <sphereGeometry args={[0.06, 8, 8]} />
           <meshBasicMaterial color={neonColor} toneMapped={false} />
         </mesh>
       )}
       {adMap && (
-        <mesh position={[0, adY - height / 2, depth / 2 + 0.04]}>
+        <mesh position={[0, adY, depth / 2 + 0.04]}>
           <planeGeometry args={[adWidth, adHeight]} />
           <meshBasicMaterial map={adMap} toneMapped={false} transparent />
         </mesh>
       )}
       {hasBeam && (
-        <mesh position={[0, height / 2 + 20, 0]}>
+        <mesh position={[0, height + 20, 0]}>
           <cylinderGeometry args={[0.03, 0.5, 40, 12, 1, true]} />
           <meshBasicMaterial
             color={neonColor}
