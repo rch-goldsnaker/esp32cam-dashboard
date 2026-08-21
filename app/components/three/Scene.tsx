@@ -1,7 +1,7 @@
 'use client';
 
-import { Suspense, useMemo } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Suspense, useMemo, useRef } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows, Grid, Stars } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette, ChromaticAberration } from '@react-three/postprocessing';
 import * as THREE from 'three';
@@ -285,11 +285,13 @@ function makeMoonHaloTexture(color: string): THREE.Texture {
   return texture;
 }
 
+const MOON_POSITION: [number, number, number] = [-34, 48, -78];
+
 function Moon() {
   const haloTex = useMemo(() => makeMoonHaloTexture('#cfe8ff'), []);
 
   return (
-    <group position={[-34, 48, -78]}>
+    <group position={MOON_POSITION}>
       <sprite scale={[42, 42, 1]}>
         <spriteMaterial
           map={haloTex}
@@ -303,6 +305,65 @@ function Moon() {
         <sphereGeometry args={[5, 32, 32]} />
         <meshBasicMaterial color="#eaf4ff" toneMapped={false} fog={false} />
       </mesh>
+    </group>
+  );
+}
+
+function Rocket() {
+  const groupRef = useRef<THREE.Group>(null);
+  const flameRef = useRef<THREE.Mesh>(null);
+  const flickerRef = useRef(0);
+  const tRef = useRef(0);
+
+  const start = useMemo(() => new THREE.Vector3(-9, 3, -20), []);
+  const end = useMemo(() => new THREE.Vector3(...MOON_POSITION), []);
+  const quaternion = useMemo(() => {
+    const dir = end.clone().sub(start).normalize();
+    return new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+  }, [start, end]);
+
+  const DURATION = 22;
+
+  useFrame((_, delta) => {
+    tRef.current = (tRef.current + delta / DURATION) % 1;
+    if (groupRef.current) {
+      groupRef.current.position.lerpVectors(start, end, tRef.current);
+    }
+    flickerRef.current += delta * 24;
+    if (flameRef.current) {
+      const flicker = 0.85 + Math.sin(flickerRef.current) * 0.12 + Math.random() * 0.06;
+      flameRef.current.scale.set(1, flicker, 1);
+    }
+  });
+
+  return (
+    <group ref={groupRef} quaternion={quaternion} scale={2.6}>
+      <mesh position={[0, 0.5, 0]}>
+        <cylinderGeometry args={[0.15, 0.15, 1, 12]} />
+        <meshStandardMaterial color="#d8d8de" roughness={0.35} metalness={0.6} />
+      </mesh>
+      <mesh position={[0, 1.15, 0]}>
+        <coneGeometry args={[0.15, 0.4, 12]} />
+        <meshStandardMaterial color="#ff5fe0" roughness={0.4} metalness={0.3} toneMapped={false} />
+      </mesh>
+      {[0, 1, 2].map((i) => (
+        <mesh key={i} position={[0, 0.15, 0]} rotation={[0, (i / 3) * Math.PI * 2, 0]}>
+          <boxGeometry args={[0.02, 0.35, 0.3]} />
+          <meshStandardMaterial color="#00e5ff" roughness={0.5} metalness={0.4} toneMapped={false} />
+        </mesh>
+      ))}
+      <mesh ref={flameRef} position={[0, -0.35, 0]} rotation={[Math.PI, 0, 0]}>
+        <coneGeometry args={[0.13, 0.7, 10]} />
+        <meshBasicMaterial
+          color="#ffb347"
+          transparent
+          opacity={0.85}
+          toneMapped={false}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+        />
+      </mesh>
+      <pointLight position={[0, -0.35, 0]} intensity={1.2} color="#ffb347" distance={5} decay={2} />
     </group>
   );
 }
@@ -331,6 +392,7 @@ export default function Scene() {
 
           <CitySkyline />
           <Moon />
+          <Rocket />
 
           <ambientLight intensity={0.3} />
           <directionalLight
