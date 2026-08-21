@@ -268,6 +268,45 @@ function CitySkyline() {
   );
 }
 
+function makeMoonHaloTexture(color: string): THREE.Texture {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+  const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  gradient.addColorStop(0, `${color}66`);
+  gradient.addColorStop(0.4, `${color}22`);
+  gradient.addColorStop(1, `${color}00`);
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function Moon() {
+  const haloTex = useMemo(() => makeMoonHaloTexture('#cfe8ff'), []);
+
+  return (
+    <group position={[-34, 48, -78]}>
+      <sprite scale={[42, 42, 1]}>
+        <spriteMaterial
+          map={haloTex}
+          transparent
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+          fog={false}
+        />
+      </sprite>
+      <mesh>
+        <sphereGeometry args={[5, 32, 32]} />
+        <meshBasicMaterial color="#eaf4ff" toneMapped={false} fog={false} />
+      </mesh>
+    </group>
+  );
+}
+
 function Fallback() {
   return (
     <div className="flex items-center justify-center h-full w-full text-zinc-500">
@@ -291,6 +330,7 @@ export default function Scene() {
           <fog attach="fog" args={['#0a0a14', 20, 95]} />
 
           <CitySkyline />
+          <Moon />
 
           <ambientLight intensity={0.3} />
           <directionalLight
