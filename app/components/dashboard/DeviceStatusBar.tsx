@@ -82,10 +82,10 @@ function Stat({ icon, label, value, valueColor = 'text-zinc-200', tooltip }: Sta
     <Tooltip>
       <TooltipTrigger
         render={
-          <div className="flex items-center gap-2 bg-zinc-800/60 rounded-md px-2 py-1.5 cursor-default" />
+          <div className="flex items-center gap-2 bg-white/[0.04] hover:bg-white/[0.08] border border-white/5 rounded-md px-2 py-1.5 cursor-default transition-colors" />
         }
       >
-        <span className="text-zinc-500">{icon}</span>
+        <span className="text-cyan-400/70">{icon}</span>
         <div className="flex flex-col leading-tight min-w-0">
           <span className="text-[9px] uppercase tracking-wider text-zinc-500 font-mono">
             {label}
@@ -104,14 +104,14 @@ function Stat({ icon, label, value, valueColor = 'text-zinc-200', tooltip }: Sta
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-widest">
+    <span className="text-[9px] font-semibold text-cyan-500/70 uppercase tracking-widest">
       {children}
     </span>
   );
 }
 
 function panelClasses(extra: string = '') {
-  return `bg-zinc-900/85 backdrop-blur-md border border-zinc-700 rounded-2xl shadow-2xl p-3 pointer-events-auto ${extra}`;
+  return `hud-panel rounded-2xl p-3 pointer-events-auto ${extra}`;
 }
 
 export default function DeviceStatusBar() {
@@ -127,7 +127,7 @@ export default function DeviceStatusBar() {
   if (!deviceIdConfigured) {
     return (
       <div className="absolute top-3 left-3 pointer-events-none z-10">
-        <div className={panelClasses('min-w-[260px] max-w-[340px]')}>
+        <div className={panelClasses('min-w-[260px] max-w-[340px] !border-amber-500/30 shadow-[0_0_24px_-8px_rgba(245,158,11,0.35)]')}>
           <div className="flex items-center gap-2 mb-1.5">
             <WifiOff className="w-4 h-4 text-amber-400" />
             <span className="text-[11px] font-mono text-amber-300 uppercase tracking-wider">
@@ -145,7 +145,7 @@ export default function DeviceStatusBar() {
   if (!upstreamOk) {
     return (
       <div className="absolute top-3 left-3 pointer-events-none z-10">
-        <div className={panelClasses('min-w-[260px] max-w-[340px]')}>
+        <div className={panelClasses('min-w-[260px] max-w-[340px] !border-amber-500/30 shadow-[0_0_24px_-8px_rgba(245,158,11,0.35)]')}>
           <div className="flex items-center gap-2 mb-1.5">
             <AlertCircle className="w-4 h-4 text-amber-400" />
             <span className="text-[11px] font-mono text-amber-300 uppercase tracking-wider">
@@ -165,7 +165,7 @@ export default function DeviceStatusBar() {
   if (!connected) {
     return (
       <div className="absolute top-3 left-3 pointer-events-none z-10">
-        <div className={panelClasses('min-w-[260px] max-w-[320px]')}>
+        <div className={panelClasses('min-w-[260px] max-w-[320px] !border-red-500/30 shadow-[0_0_24px_-8px_rgba(239,68,68,0.4)]')}>
           <div className="flex items-center gap-2 mb-1.5">
             <WifiOff className="w-4 h-4 text-red-400" />
             <span className="text-[11px] font-mono text-red-300 uppercase tracking-wider">
@@ -206,7 +206,7 @@ export default function DeviceStatusBar() {
         <div className={panelClasses('min-w-[280px] max-w-[340px] space-y-3')}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_2px_rgba(74,222,128,0.7)] animate-pulse" />
               <span className="text-[11px] font-mono text-zinc-200 uppercase tracking-wider">
                 ESP32 connected
               </span>
@@ -288,7 +288,7 @@ export default function DeviceStatusBar() {
               onClick={() => setModelRotating(!modelRotating)}
               title="Toggle 3D model rotation"
               className={`flex-1 flex items-center justify-center gap-1 py-1 rounded text-[10px] cursor-pointer pointer-events-auto ${
-                modelRotating ? 'bg-cyan-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                modelRotating ? 'bg-cyan-500 text-zinc-950 shadow-[0_0_12px_-2px_rgba(34,211,238,0.8)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/5'
               }`}
             >
               {modelRotating ? <RotateCw className="w-3 h-3" /> : <Pause className="w-3 h-3" />}
@@ -298,7 +298,7 @@ export default function DeviceStatusBar() {
               onClick={() => setModelVisible(!modelVisible)}
               title="Show or hide the 3D model"
               className={`flex-1 flex items-center justify-center gap-1 py-1 rounded text-[10px] cursor-pointer pointer-events-auto ${
-                modelVisible ? 'bg-cyan-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                modelVisible ? 'bg-cyan-500 text-zinc-950 shadow-[0_0_12px_-2px_rgba(34,211,238,0.8)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/5'
               }`}
             >
               {modelVisible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}

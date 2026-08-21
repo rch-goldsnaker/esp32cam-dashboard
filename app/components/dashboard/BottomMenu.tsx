@@ -65,7 +65,7 @@ export default function BottomMenu({ onOpenSettings, onOpenConexion }: Props) {
 
   return (
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
-      <div className="flex items-end gap-1 px-2 py-2 bg-zinc-900/85 border border-zinc-700 backdrop-blur-md rounded-2xl shadow-2xl shadow-black/60">
+      <div className="hud-panel-strong flex items-end gap-1 px-2 py-2 rounded-2xl">
         <MenuButton
           label={streamEnabled ? 'Stop stream' : 'Start stream'}
           active={streamEnabled}
@@ -118,7 +118,7 @@ export default function BottomMenu({ onOpenSettings, onOpenConexion }: Props) {
         <MenuButton
           label="Settings"
           active={false}
-          activeColor="text-zinc-300"
+          activeColor="text-violet-400"
           onClick={handleSettings}
           onHover={setTooltip}
           burstKey={bursts.settings}
@@ -129,7 +129,7 @@ export default function BottomMenu({ onOpenSettings, onOpenConexion }: Props) {
         <MenuButton
           label="Connection"
           active={false}
-          activeColor="text-zinc-300"
+          activeColor="text-violet-400"
           onClick={handleConexion}
           onHover={setTooltip}
           burstKey={bursts.conexion}
@@ -139,7 +139,7 @@ export default function BottomMenu({ onOpenSettings, onOpenConexion }: Props) {
       </div>
 
       {tooltip && (
-        <div className="absolute -top-9 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-md bg-zinc-800 border border-zinc-700 text-[11px] font-mono text-zinc-200 whitespace-nowrap shadow-lg pointer-events-none">
+        <div className="hud-panel absolute -top-9 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-md text-[11px] font-mono text-zinc-200 whitespace-nowrap pointer-events-none">
           {tooltip}
         </div>
       )}
@@ -148,7 +148,7 @@ export default function BottomMenu({ onOpenSettings, onOpenConexion }: Props) {
 }
 
 function Divider() {
-  return <div className="w-px h-7 bg-zinc-700 mx-1 self-center" />;
+  return <div className="w-px h-7 bg-gradient-to-b from-transparent via-cyan-500/40 to-transparent mx-1 self-center" />;
 }
 
 function MenuButton({
@@ -170,7 +170,7 @@ function MenuButton({
   glow?: boolean;
   burstKey?: number;
 }) {
-  const colorClass = active ? activeColor : 'text-zinc-400 hover:text-zinc-200';
+  const colorClass = active ? activeColor : 'text-zinc-400 hover:text-cyan-300';
 
   return (
     <button
@@ -178,9 +178,9 @@ function MenuButton({
       onMouseEnter={() => onHover(label)}
       onMouseLeave={() => onHover(null)}
       className={`relative w-11 h-11 flex items-center justify-center rounded-xl transition-all cursor-pointer
-        hover:bg-zinc-800 hover:scale-105 active:scale-95
+        hover:bg-white/8 hover:scale-105 active:scale-95
         ${colorClass}
-        ${active ? 'bg-zinc-800/70' : ''}
+        ${active ? 'bg-white/10' : ''}
         ${glow ? 'flash-glow' : ''}`}
     >
       {active && (

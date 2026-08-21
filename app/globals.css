@@ -7,7 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -50,7 +50,7 @@
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #333 #111;
+  scrollbar-color: #3a2a6e #0a0714;
 }
 
 ::-webkit-scrollbar {
@@ -58,16 +58,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #111;
+  background: #0a0714;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: #3a2a6e;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #444;
+  background: #00e5ff;
 }
 
 body {
@@ -110,37 +110,37 @@ body {
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: oklch(0.12 0.03 290);
+  --foreground: oklch(0.96 0.01 260);
+  --card: oklch(0.16 0.035 285);
+  --card-foreground: oklch(0.96 0.01 260);
+  --popover: oklch(0.14 0.035 285);
+  --popover-foreground: oklch(0.96 0.01 260);
+  --primary: oklch(0.85 0.14 200);
+  --primary-foreground: oklch(0.12 0.03 290);
+  --secondary: oklch(0.62 0.22 300);
+  --secondary-foreground: oklch(0.98 0.01 260);
+  --muted: oklch(0.22 0.03 285);
+  --muted-foreground: oklch(0.68 0.03 270);
+  --accent: oklch(0.7 0.24 330);
+  --accent-foreground: oklch(0.12 0.03 290);
+  --destructive: oklch(0.65 0.24 15);
+  --border: oklch(0.85 0.14 200 / 16%);
+  --input: oklch(0.85 0.14 200 / 12%);
+  --ring: oklch(0.85 0.14 200 / 60%);
+  --chart-1: oklch(0.85 0.14 200);
+  --chart-2: oklch(0.7 0.24 330);
+  --chart-3: oklch(0.62 0.22 300);
+  --chart-4: oklch(0.75 0.19 145);
+  --chart-5: oklch(0.8 0.18 90);
+  --sidebar: oklch(0.14 0.035 285);
+  --sidebar-foreground: oklch(0.96 0.01 260);
+  --sidebar-primary: oklch(0.85 0.14 200);
+  --sidebar-primary-foreground: oklch(0.12 0.03 290);
+  --sidebar-accent: oklch(0.7 0.24 330);
+  --sidebar-accent-foreground: oklch(0.12 0.03 290);
+  --sidebar-border: oklch(0.85 0.14 200 / 16%);
+  --sidebar-ring: oklch(0.85 0.14 200 / 60%);
 }
 
 @keyframes flash-burst {
@@ -178,6 +178,52 @@ body {
 
 .flash-glow {
   animation: flash-glow-pulse 1.6s ease-in-out infinite;
+}
+
+/* --- HUD design system: cyberpunk glass panels --- */
+
+.hud-panel {
+  background: linear-gradient(160deg, rgba(18, 14, 38, 0.82), rgba(10, 8, 24, 0.88));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  box-shadow:
+    0 0 0 1px rgba(168, 85, 247, 0.08) inset,
+    0 10px 30px -10px rgba(0, 0, 0, 0.7),
+    0 0 22px -6px rgba(0, 229, 255, 0.18);
+}
+
+.hud-panel-strong {
+  background: linear-gradient(160deg, rgba(20, 15, 42, 0.92), rgba(8, 6, 20, 0.94));
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  box-shadow:
+    0 0 0 1px rgba(0, 229, 255, 0.1) inset,
+    0 16px 45px -12px rgba(0, 0, 0, 0.75),
+    0 0 34px -8px rgba(168, 85, 247, 0.25);
+}
+
+.hud-edge-top {
+  position: relative;
+}
+
+.hud-edge-top::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.7), rgba(217, 70, 239, 0.5), transparent);
+}
+
+.neon-text-cyan {
+  color: #22d3ee;
+  text-shadow: 0 0 10px rgba(34, 211, 238, 0.55);
+}
+
+.neon-text-violet {
+  color: #c084fc;
+  text-shadow: 0 0 10px rgba(192, 132, 252, 0.5);
 }
 
 @layer base {

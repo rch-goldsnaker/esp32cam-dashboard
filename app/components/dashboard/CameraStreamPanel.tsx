@@ -290,26 +290,26 @@ export default function CameraStreamPanel({ streaming, frameSize, quality }: Pro
     <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
       <div className="flex flex-col items-center gap-4 pointer-events-auto">
         {showStream && (
-          <div className="bg-zinc-900/95 border border-zinc-700 rounded-xl overflow-hidden shadow-2xl transition-all duration-300 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between px-3 py-2 bg-zinc-800 border-b border-zinc-700">
+          <div className="hud-panel-strong hud-edge-top rounded-xl overflow-hidden transition-all duration-300 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between px-3 py-2 bg-white/[0.04] border-b border-white/10">
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_2px_rgba(74,222,128,0.7)] animate-pulse" />
                 <span className="text-xs font-semibold text-zinc-300 font-mono">LIVE STREAM</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-zinc-500 font-mono">
+                <span className="text-[10px] text-cyan-400/70 font-mono">
                   FPS: {fps} | {RES_MAP[frameSize] ?? '640x480'}
                 </span>
                 <button
                   onClick={() => setExpanded(!expanded)}
-                  className="p-0.5 rounded hover:bg-zinc-700 transition-colors text-zinc-400 hover:text-zinc-200"
+                  className="p-0.5 rounded hover:bg-white/10 transition-colors text-zinc-400 hover:text-cyan-300"
                   title={expanded ? 'Original' : 'Ampliar'}
                 >
                   {expanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
                 </button>
                 <button
                   onClick={() => setStreamDismissed(true)}
-                  className="p-0.5 rounded hover:bg-zinc-700 transition-colors text-zinc-400 hover:text-zinc-200"
+                  className="p-0.5 rounded hover:bg-white/10 transition-colors text-zinc-400 hover:text-zinc-200"
                 >
                   <X size={14} />
                 </button>
@@ -329,10 +329,10 @@ export default function CameraStreamPanel({ streaming, frameSize, quality }: Pro
 
     {showCapture && (
       <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-        <div className="bg-zinc-900/95 border border-cyan-700 rounded-xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 pointer-events-auto">
-          <div className="flex items-center justify-between px-2 py-1 bg-zinc-800 border-b border-cyan-800">
+        <div className="hud-panel rounded-xl overflow-hidden animate-in fade-in zoom-in-95 pointer-events-auto shadow-[0_0_24px_-6px_rgba(34,211,238,0.4)]">
+          <div className="flex items-center justify-between px-2 py-1 bg-white/[0.04] border-b border-cyan-500/20">
             <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_2px_rgba(34,211,238,0.8)] animate-pulse" />
               <span className="text-[10px] font-semibold text-cyan-300 font-mono">CAPTURE</span>
             </div>
             <div className="flex items-center gap-1.5">
@@ -346,14 +346,14 @@ export default function CameraStreamPanel({ streaming, frameSize, quality }: Pro
                   a.download = `capture-${capturePreview!.ts}.jpg`;
                   a.click();
                 }}
-                className="p-0.5 rounded hover:bg-zinc-700 transition-colors text-cyan-400 hover:text-cyan-300"
+                className="p-0.5 rounded hover:bg-white/10 transition-colors text-cyan-400 hover:text-cyan-300"
                 title="Download"
               >
                 <Download size={12} />
               </button>
               <button
                 onClick={() => setCaptureDismissed(true)}
-                className="p-0.5 rounded hover:bg-zinc-700 transition-colors text-zinc-400 hover:text-zinc-200"
+                className="p-0.5 rounded hover:bg-white/10 transition-colors text-zinc-400 hover:text-zinc-200"
               >
                 <X size={12} />
               </button>
@@ -371,14 +371,14 @@ export default function CameraStreamPanel({ streaming, frameSize, quality }: Pro
 
     {recording && (
       <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-        <div className="bg-zinc-900/95 border border-red-700 rounded-xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 pointer-events-auto">
+        <div className="hud-panel rounded-xl overflow-hidden animate-in fade-in zoom-in-95 pointer-events-auto shadow-[0_0_24px_-6px_rgba(239,68,68,0.45)]">
           <div className="flex items-center gap-3 px-3 py-2">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_2px_rgba(239,68,68,0.8)] animate-pulse" />
             <span className="text-[10px] font-semibold text-red-300 font-mono">REC</span>
             <span className="text-[10px] text-zinc-400 font-mono">
               {formatRecordTime(recordProgress)} / 0:30
             </span>
-            <div className="w-20 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+            <div className="w-20 h-1.5 bg-white/10 rounded-full overflow-hidden">
               <div
                 className="h-full bg-red-500 rounded-full transition-all duration-100"
                 style={{ width: `${recordProgress}%` }}
@@ -386,7 +386,7 @@ export default function CameraStreamPanel({ streaming, frameSize, quality }: Pro
             </div>
             <button
               onClick={stopRecording}
-              className="p-0.5 rounded hover:bg-zinc-700 transition-colors text-red-400 hover:text-red-300"
+              className="p-0.5 rounded hover:bg-white/10 transition-colors text-red-400 hover:text-red-300"
               title="Stop recording"
             >
               <Square size={12} />
@@ -398,8 +398,8 @@ export default function CameraStreamPanel({ streaming, frameSize, quality }: Pro
 
     {showRecorded && (
       <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-        <div className="bg-zinc-900/95 border border-red-700 rounded-xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 pointer-events-auto">
-          <div className="flex items-center justify-between px-2 py-1 bg-zinc-800 border-b border-red-800">
+        <div className="hud-panel rounded-xl overflow-hidden animate-in fade-in zoom-in-95 pointer-events-auto shadow-[0_0_24px_-6px_rgba(239,68,68,0.35)]">
+          <div className="flex items-center justify-between px-2 py-1 bg-white/[0.04] border-b border-red-500/20">
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
               <span className="text-[10px] font-semibold text-red-300 font-mono">RECORDED</span>
@@ -415,14 +415,14 @@ export default function CameraStreamPanel({ streaming, frameSize, quality }: Pro
                   a.download = `recording-${recordedAt}.webm`;
                   a.click();
                 }}
-                className="p-0.5 rounded hover:bg-zinc-700 transition-colors text-red-400 hover:text-red-300"
+                className="p-0.5 rounded hover:bg-white/10 transition-colors text-red-400 hover:text-red-300"
                 title="Download"
               >
                 <Download size={12} />
               </button>
               <button
                 onClick={() => { setRecordDismissed(true); clearRecording(); }}
-                className="p-0.5 rounded hover:bg-zinc-700 transition-colors text-zinc-400 hover:text-zinc-200"
+                className="p-0.5 rounded hover:bg-white/10 transition-colors text-zinc-400 hover:text-zinc-200"
               >
                 <X size={12} />
               </button>

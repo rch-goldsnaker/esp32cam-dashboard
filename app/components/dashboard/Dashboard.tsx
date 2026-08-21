@@ -56,7 +56,7 @@ export default function Dashboard() {
   }, [deviceId, syncFromTB]);
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-zinc-950">
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-background">
       <main className="flex-1 relative min-w-0">
         <Scene />
 

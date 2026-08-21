@@ -55,7 +55,7 @@ export default function SettingsDrawer({ open, onClose }: Props) {
               setLocalError(null);
             }}
             placeholder="http://192.168.x.x:81/stream"
-            className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-xs text-zinc-200 font-mono placeholder:text-zinc-600 outline-none focus:border-cyan-500 transition-colors"
+            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-xs text-zinc-200 font-mono placeholder:text-zinc-600 outline-none focus:border-violet-400 transition-colors"
           />
           {localError && (
             <p className="text-[11px] text-red-400">{localError}</p>
@@ -66,13 +66,13 @@ export default function SettingsDrawer({ open, onClose }: Props) {
       <div className="flex gap-3 pt-2">
         <button
           onClick={onClose}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-lg transition-colors cursor-pointer"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-white/5 hover:bg-white/10 border border-white/5 text-zinc-300 text-xs font-medium rounded-lg transition-colors cursor-pointer"
         >
           <X className="w-3.5 h-3.5" /> Cancel
         </button>
         <button
           onClick={handleSave}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium rounded-lg transition-colors cursor-pointer"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg shadow-[0_0_16px_-4px_rgba(168,85,247,0.7)] transition-colors cursor-pointer"
         >
           <Save className="w-3.5 h-3.5" /> Save
         </button>

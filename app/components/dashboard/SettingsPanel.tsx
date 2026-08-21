@@ -46,7 +46,7 @@ function PanelSlider({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full h-1 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-cyan-500
+        className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-cyan-500
           [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5
           [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400"
       />
@@ -74,15 +74,15 @@ export default function SettingsPanel() {
 
   return (
     <div className="absolute bottom-20 left-3 pointer-events-none z-10">
-      <div className="bg-zinc-900/85 backdrop-blur-md border border-zinc-700 rounded-2xl shadow-2xl p-3 min-w-[220px] max-w-[260px] space-y-2 pointer-events-auto">
+      <div className="hud-panel rounded-2xl p-3 min-w-[220px] max-w-[260px] space-y-2 pointer-events-auto">
         <div className="flex items-center gap-1.5">
           <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-400" />
-          <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-widest">
+          <span className="text-[9px] font-semibold text-cyan-500/70 uppercase tracking-widest">
             Settings
           </span>
         </div>
 
-        <div className="space-y-2 p-2 bg-zinc-800/40 rounded-lg border border-zinc-800">
+        <div className="space-y-2 p-2 bg-white/[0.03] rounded-lg border border-white/5">
           <PanelSlider
             label="FPS"
             icon={<Activity className="w-3 h-3" />}
@@ -100,7 +100,7 @@ export default function SettingsPanel() {
             <select
               value={frameSize}
               onChange={(e) => setFrameSize(Number(e.target.value) as FrameSizeNum)}
-              className="w-full px-2 py-1.5 bg-zinc-800 border border-zinc-700 rounded-lg text-[10px] text-zinc-200 outline-none focus:border-cyan-500 cursor-pointer"
+              className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[10px] text-zinc-200 outline-none focus:border-cyan-400 cursor-pointer"
             >
               {Object.entries(FRAME_SIZE_LABELS).map(([k, v]) => (
                 <option key={k} value={k}>{`${k} → ${v}`}</option>
@@ -152,7 +152,7 @@ export default function SettingsPanel() {
             <button
               onClick={() => setVflip(!vflip)}
               className={`flex-1 flex items-center justify-center gap-1 py-1 rounded text-[10px] cursor-pointer ${
-                vflip ? 'bg-cyan-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                vflip ? 'bg-cyan-500 text-zinc-950 shadow-[0_0_12px_-2px_rgba(34,211,238,0.8)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/5'
               }`}
             >
               <FlipVertical2 className="w-3 h-3" /> V-Flip
@@ -160,7 +160,7 @@ export default function SettingsPanel() {
             <button
               onClick={() => setHmirror(!hmirror)}
               className={`flex-1 flex items-center justify-center gap-1 py-1 rounded text-[10px] cursor-pointer ${
-                hmirror ? 'bg-cyan-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                hmirror ? 'bg-cyan-500 text-zinc-950 shadow-[0_0_12px_-2px_rgba(34,211,238,0.8)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/5'
               }`}
             >
               <FlipHorizontal2 className="w-3 h-3" /> H-Mirror

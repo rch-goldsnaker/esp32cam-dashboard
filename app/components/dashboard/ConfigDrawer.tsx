@@ -13,10 +13,10 @@ export function Section({
 }) {
   return (
     <section className="space-y-3">
-      <h3 className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+      <h3 className="text-[11px] font-semibold text-violet-300/80 uppercase tracking-wider flex items-center gap-1.5">
         {icon} {title}
       </h3>
-      <div className="space-y-3 p-3 bg-zinc-800/40 rounded-lg border border-zinc-800">
+      <div className="space-y-3 p-3 bg-white/[0.03] rounded-lg border border-white/5">
         {children}
       </div>
     </section>
@@ -36,13 +36,13 @@ export function Toggle({
     <button
       onClick={onToggle}
       className={`w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-colors ${
-        active ? 'bg-cyan-700 text-white' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+        active ? 'bg-violet-600/80 text-white shadow-[0_0_16px_-4px_rgba(168,85,247,0.7)]' : 'bg-white/5 text-zinc-300 hover:bg-white/10 border border-white/5'
       }`}
     >
       <span className="text-xs">{label}</span>
       <span
         className={`w-9 h-5 rounded-full relative transition-colors ${
-          active ? 'bg-cyan-400' : 'bg-zinc-600'
+          active ? 'bg-violet-300' : 'bg-zinc-600'
         }`}
       >
         <span
@@ -87,9 +87,9 @@ export function Slider({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full h-1.5 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-cyan-500
+        className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-violet-500
           [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
-          [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400"
+          [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-violet-400"
       />
       <div className="flex items-center justify-between text-[9px] text-zinc-600 font-mono">
         <span>{min}</span>
@@ -115,16 +115,16 @@ export function DrawerShell({
   if (!open) return null;
 
   return (
-    <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl">
-        <header className="sticky top-0 bg-zinc-900 border-b border-zinc-800 px-5 py-3 flex items-center justify-between">
+    <div className="absolute inset-0 z-20 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="hud-panel-strong hud-edge-top rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
+        <header className="sticky top-0 bg-[rgba(14,10,30,0.92)] backdrop-blur-md border-b border-white/10 px-5 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-cyan-400">{icon}</span>
+            <span className="neon-text-violet">{icon}</span>
             <h2 className="text-sm font-semibold text-zinc-100">{title}</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 cursor-pointer"
+            className="p-1.5 rounded-md hover:bg-white/10 text-zinc-400 hover:text-zinc-100 cursor-pointer"
             title="Close"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
