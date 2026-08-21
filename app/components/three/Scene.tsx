@@ -1,12 +1,61 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Environment, ContactShadows, Grid, Stars } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette, ChromaticAberration } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import Model from './Model';
 import CameraTracker from './CameraTracker';
+
+function makeGlowTexture(color: string): THREE.Texture {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+  const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  gradient.addColorStop(0, `${color}ff`);
+  gradient.addColorStop(0.35, `${color}88`);
+  gradient.addColorStop(1, `${color}00`);
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function BackgroundGlow() {
+  const cyanTex = useMemo(() => makeGlowTexture('#00e5ff'), []);
+  const magentaTex = useMemo(() => makeGlowTexture('#c026ff'), []);
+
+  return (
+    <group renderOrder={-10}>
+      <sprite position={[-9, 7, -22]} scale={[34, 34, 1]}>
+        <spriteMaterial
+          map={cyanTex}
+          color="#00e5ff"
+          transparent
+          opacity={0.55}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+          fog={false}
+        />
+      </sprite>
+      <sprite position={[12, 4, -26]} scale={[26, 26, 1]}>
+        <spriteMaterial
+          map={magentaTex}
+          color="#c026ff"
+          transparent
+          opacity={0.4}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+          fog={false}
+        />
+      </sprite>
+    </group>
+  );
+}
 
 function Fallback() {
   return (
@@ -29,6 +78,8 @@ export default function Scene() {
       >
         <Suspense fallback={null}>
           <fog attach="fog" args={['#0a0a14', 8, 35]} />
+
+          <BackgroundGlow />
 
           <ambientLight intensity={0.3} />
           <directionalLight
