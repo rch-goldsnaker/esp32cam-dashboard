@@ -15,10 +15,59 @@ interface BuildingSpec {
   depth: number;
   height: number;
   seed: number;
+  hasAd: boolean;
 }
 
 const WINDOW_PALETTE = ['#7ce8ff', '#ff5fe0', '#ffd166', '#9d7bff', '#ffffff'];
 const FACADE_PALETTE = ['#0b0a17', '#0e0a1e', '#0a1018', '#120a16', '#0a0e1a'];
+const AD_PALETTE = ['#00e5ff', '#ff2fd6', '#ffd166', '#7cff6b', '#9d7bff', '#ffffff'];
+
+function makeAdTexture(): THREE.CanvasTexture {
+  const w = 128;
+  const h = 176;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d')!;
+
+  ctx.fillStyle = Math.random() > 0.5 ? '#04030c' : '#020814';
+  ctx.fillRect(0, 0, w, h);
+
+  const frameColor = AD_PALETTE[Math.floor(Math.random() * AD_PALETTE.length)];
+  ctx.strokeStyle = frameColor;
+  ctx.lineWidth = 5;
+  ctx.strokeRect(4, 4, w - 8, h - 8);
+
+  const logoColor = AD_PALETTE[Math.floor(Math.random() * AD_PALETTE.length)];
+  const logoSize = 30 + Math.random() * 26;
+  ctx.fillStyle = logoColor;
+  if (Math.random() > 0.5) {
+    ctx.fillRect(w / 2 - logoSize / 2, 16, logoSize, logoSize);
+  } else {
+    ctx.beginPath();
+    ctx.arc(w / 2, 16 + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  let y = 16 + logoSize + 18;
+  const barCount = 3 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < barCount; i++) {
+    ctx.fillStyle = AD_PALETTE[Math.floor(Math.random() * AD_PALETTE.length)];
+    const barW = 34 + Math.random() * (w - 68);
+    ctx.fillRect((w - barW) / 2, y, barW, 7);
+    y += 15;
+  }
+
+  ctx.globalAlpha = 0.15;
+  ctx.fillStyle = '#000000';
+  for (let sy = 0; sy < h; sy += 4) ctx.fillRect(0, sy, w, 2);
+  ctx.globalAlpha = 1;
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
 
 function makeWindowEmissiveTexture(width: number, height: number): THREE.CanvasTexture {
   const texW = 128;
@@ -53,7 +102,7 @@ function makeWindowEmissiveTexture(width: number, height: number): THREE.CanvasT
   return texture;
 }
 
-function Building({ x, z, width, depth, height, seed }: BuildingSpec) {
+function Building({ x, z, width, depth, height, seed, hasAd }: BuildingSpec) {
   const rotationY = Math.atan2(-x, -z);
   const neonColor = seed > 0.5 ? '#00e5ff' : '#c026ff';
   const facadeColor = FACADE_PALETTE[Math.floor(seed * FACADE_PALETTE.length) % FACADE_PALETTE.length];
@@ -63,10 +112,16 @@ function Building({ x, z, width, depth, height, seed }: BuildingSpec) {
     [width, height, depth]
   );
   const windowMap = useMemo(() => makeWindowEmissiveTexture(width, height), [width, height]);
+  const adMap = useMemo(() => (hasAd ? makeAdTexture() : null), [hasAd]);
 
   const hasCap = seed > 0.55;
   const hasAntenna = height > 11 && seed < 0.75;
+  const hasBeam = height > 34;
   const capSize = Math.min(width, depth) * 0.45;
+
+  const adWidth = width * (0.45 + seed * 0.25);
+  const adHeight = adWidth * 1.35;
+  const adY = height * (0.35 + (seed % 0.3));
 
   return (
     <group position={[x, height / 2, z]} rotation={[0, rotationY, 0]}>
@@ -102,6 +157,26 @@ function Building({ x, z, width, depth, height, seed }: BuildingSpec) {
           <meshBasicMaterial color={neonColor} toneMapped={false} />
         </mesh>
       )}
+      {adMap && (
+        <mesh position={[0, adY - height / 2, depth / 2 + 0.04]}>
+          <planeGeometry args={[adWidth, adHeight]} />
+          <meshBasicMaterial map={adMap} toneMapped={false} transparent />
+        </mesh>
+      )}
+      {hasBeam && (
+        <mesh position={[0, height / 2 + 20, 0]}>
+          <cylinderGeometry args={[0.03, 0.5, 40, 12, 1, true]} />
+          <meshBasicMaterial
+            color={neonColor}
+            transparent
+            opacity={0.12}
+            toneMapped={false}
+            side={THREE.DoubleSide}
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+          />
+        </mesh>
+      )}
     </group>
   );
 }
@@ -126,6 +201,7 @@ function CitySkyline() {
           depth: 3 + Math.random() * 4,
           height: ring.minH + Math.random() * (ring.maxH - ring.minH),
           seed: Math.random(),
+          hasAd: Math.random() < 0.4,
         });
       }
     });
@@ -136,89 +212,6 @@ function CitySkyline() {
     <group renderOrder={-5}>
       {buildings.map((b, i) => (
         <Building key={i} {...b} />
-      ))}
-    </group>
-  );
-}
-
-function StreetLamp({ x, z }: { x: number; z: number }) {
-  const color = '#7ce8ff';
-  return (
-    <group position={[x, 0, z]}>
-      <mesh position={[0, 1.1, 0]} castShadow>
-        <cylinderGeometry args={[0.04, 0.06, 2.2, 6]} />
-        <meshStandardMaterial color="#141418" roughness={0.5} metalness={0.6} />
-      </mesh>
-      <mesh position={[0, 2.15, 0.18]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.03, 0.03, 0.4, 6]} />
-        <meshStandardMaterial color="#141418" roughness={0.5} metalness={0.6} />
-      </mesh>
-      <mesh position={[0, 2.08, 0.36]}>
-        <sphereGeometry args={[0.1, 8, 8]} />
-        <meshBasicMaterial color={color} toneMapped={false} />
-      </mesh>
-    </group>
-  );
-}
-
-interface RoadSpec {
-  angle: number;
-  length: number;
-}
-
-function Road({ angle, length }: RoadSpec) {
-  const roadWidth = 3.2;
-  const startD = 8;
-  const lampSpacing = 15;
-
-  const lampPositions = useMemo(() => {
-    const arr: number[] = [];
-    for (let d = startD + 4; d < length - 3; d += lampSpacing) arr.push(d);
-    return arr;
-  }, [length]);
-
-  const dashes = useMemo(() => {
-    const arr: number[] = [];
-    for (let d = startD; d < length; d += 4.5) arr.push(d);
-    return arr;
-  }, [length]);
-
-  return (
-    <group rotation={[0, angle, 0]}>
-      <mesh position={[0, 0.004, startD + length / 2]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[roadWidth, length]} />
-        <meshStandardMaterial color="#0c0c11" roughness={0.95} metalness={0.05} />
-      </mesh>
-      {dashes.map((d, i) => (
-        <mesh key={i} position={[0, 0.006, d]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[0.08, 1.3]} />
-          <meshBasicMaterial color="#ffd166" toneMapped={false} transparent opacity={0.75} />
-        </mesh>
-      ))}
-      {lampPositions.map((d, i) => (
-        <group key={i}>
-          <StreetLamp x={roadWidth / 2 + 0.35} z={d} />
-          <StreetLamp x={-(roadWidth / 2 + 0.35)} z={d} />
-        </group>
-      ))}
-    </group>
-  );
-}
-
-function StreetGrid() {
-  const roads = useMemo(() => {
-    const count = 8;
-    const list: RoadSpec[] = [];
-    for (let i = 0; i < count; i++) {
-      list.push({ angle: (i / count) * Math.PI * 2, length: 70 });
-    }
-    return list;
-  }, []);
-
-  return (
-    <group renderOrder={-4}>
-      {roads.map((r, i) => (
-        <Road key={i} {...r} />
       ))}
     </group>
   );
@@ -247,7 +240,6 @@ export default function Scene() {
           <fog attach="fog" args={['#0a0a14', 20, 95]} />
 
           <CitySkyline />
-          <StreetGrid />
 
           <ambientLight intensity={0.3} />
           <directionalLight
